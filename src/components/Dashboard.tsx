@@ -25,7 +25,7 @@ export function Dashboard() {
       setSnippets(result);
       setFilteredSnippets(result);
     } catch (error) {
-      toast.error('Failed to create snippet');
+      toast.error('Failed to load snippets');
     } finally {
       setLoading(false);
     }
@@ -58,7 +58,8 @@ export function Dashboard() {
     trigger: string,
     content: string,
     description: string,
-    tags: string[]
+    tags: string[],
+    isHtml: boolean
   ) => {
     try {
       await invoke('create_snippet', {
@@ -66,8 +67,9 @@ export function Dashboard() {
         content,
         description: description || null,
         tags,
+        isHtml,
       });
-      toast.success('Snippet created successfully'),
+      toast.success('Snippet created successfully');
       loadSnippets();
       setIsCreating(false);
     } catch (error) {
@@ -80,7 +82,8 @@ export function Dashboard() {
     trigger: string,
     content: string,
     description: string,
-    tags: string[]
+    tags: string[],
+    isHtml: boolean
   ) => {
     try {
       await invoke('update_snippet', {
@@ -89,6 +92,7 @@ export function Dashboard() {
         content,
         description: description || null,
         tags,
+        isHtml,
       });
       toast.success('Snippet updated successfully');
       loadSnippets();
@@ -101,11 +105,11 @@ export function Dashboard() {
   const handleDeleteSnippet = async (id: string) => {
     try {
       await invoke('delete_snippet', { id });
-      toast.success('Snippet deleted successfully');
+      toast.success
       loadSnippets();
       setSelectedSnippet(null);
     } catch (error) {
-      toast
+      toast.error(error as string);
     }
   };
 
@@ -118,7 +122,7 @@ export function Dashboard() {
       a.href = url;
       a.download = `snippets-${Date.now()}.json`;
       a.click();
-      toast.success('Snippets exported successfully');
+      toast.success('Exported snippets successfully');
     } catch (error) {
       toast.error(error as string);
     }
@@ -188,7 +192,8 @@ export function Dashboard() {
                         trigger,
                         content,
                         description,
-                        tags
+                        tags,
+                        selectedSnippet!.is_html
                       )
               }
               onCancel={() => {

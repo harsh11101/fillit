@@ -7,6 +7,7 @@ export type Snippet = {
     usage_count: number;
     created_at: number;
     updated_at: number;
+    is_html: boolean;
 }
 
 export type Theme = 'dark' | 'light';
@@ -32,12 +33,6 @@ export interface StatsCardsProps {
   snippets: Snippet[];
 }
 
-export interface SnippetEditorProps {
-  snippet: Snippet | null;
-  onSave: (trigger: string, content: string, description: string, tags: string[]) => void;
-  onCancel: () => void;
-}
-
 export interface EmptyStateProps {
   onCreateNew: () => void;
 }
@@ -54,4 +49,10 @@ export interface SidebarProps {
   selectedTag: string | null;
   onSelectTag: (tag: string | null) => void;
   onCreateNew: () => void;
+}
+
+export interface SnippetEditorProps {
+  snippet: Snippet | null;
+  onSave: (trigger: string, content: string, description: string, tags: string[], isHtml: boolean) => void;
+  onCancel: () => void;
 }
