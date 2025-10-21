@@ -1,5 +1,6 @@
 use crate::config::Database;
 use crate::snippet::Snippet;
+use crate::snippet_settings::SnippetSettings;
 use tauri::State;
 
 #[tauri::command]
@@ -17,9 +18,11 @@ pub fn create_snippet(
     trigger: String,
     content: String,
     description: Option<String>,
+    is_html: bool,
     tags: Vec<String>,
     db: State<Database>,
 ) -> Result<Snippet, String> {
+    println!("printing the snippet creation is_html value: {}", is_html);
     let snippet = Snippet::new(trigger, content, description, tags, is_html);
     db.create_snippet(&snippet)?;
     Ok(snippet)
@@ -74,5 +77,5 @@ pub fn update_snippet_settings(
 
 #[tauri::command]
 pub fn get_snippets_settings(db: State<Database>) -> Result<SnippetSettings, String> {
-    db.get_snippets_settings()
+    db.get_snippet_settings()
 }

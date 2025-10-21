@@ -186,14 +186,14 @@ export function Dashboard() {
               onSave={
                 isCreating
                   ? handleCreateSnippet
-                  : (trigger, content, description, tags) =>
+                  : (trigger, content, description, tags, isHtml) =>
                       handleUpdateSnippet(
                         selectedSnippet!.id,
                         trigger,
                         content,
                         description,
                         tags,
-                        selectedSnippet!.is_html
+                        isHtml
                       )
               }
               onCancel={() => {

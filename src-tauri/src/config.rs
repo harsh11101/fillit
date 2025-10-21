@@ -1,6 +1,6 @@
 use crate::snippet::Snippet;
 use crate::snippet_settings::SnippetSettings;
-use rusqlite::{params, Connection, Result as SqlResult};
+use rusqlite::{params, OptionalExtension, Connection, Result as SqlResult};
 use std::path::PathBuf;
 use std::sync::Mutex;
 
@@ -25,7 +25,8 @@ impl Database {
     fn get_db_path() -> PathBuf {
         let config_dir = dirs::config_dir()
             .expect("Failed to get config directory")
-            .join("lemme-do-it");
+            .join("lemmeDoIt");
+        println!("Database will be stored at: {:?}", config_dir);
 
         std::fs::create_dir_all(&config_dir).expect("Failed to create config directory");
         config_dir.join("snippets.db")
@@ -33,7 +34,7 @@ impl Database {
 
     fn init_tables(&self) -> Result<(), String> {
         let conn = self.conn.lock().map_err(|e| e.to_string())?;
-
+        println!("Making snipprt table");
         conn.execute(
             "CREATE TABLE IF NOT EXISTS snippets (
                 id TEXT PRIMARY KEY,
@@ -43,7 +44,8 @@ impl Database {
                 tags TEXT NOT NULL,
                 created_at INTEGER NOT NULL,
                 updated_at INTEGER NOT NULL,
-                usage_count INTEGER NOT NULL DEFAULT 0
+                usage_count INTEGER NOT NULL DEFAULT 0,
+                is_html BOOLEAN NOT NULL DEFAULT FALSE
             )",
             [],
         )
@@ -78,7 +80,7 @@ impl Database {
             .prepare("SELECT keyboard_trigger_key, time_delay_ms FROM snippet_settings WHERE id = 1")
             .map_err(|e| format!("Failed to prepare statement: {}", e))?;
 
-        let snippet = stmt
+        let snippet_settings = stmt
             .query_row([],|row| {
 
                 Ok(SnippetSettings {
@@ -92,22 +94,25 @@ impl Database {
             .optional()
             .map_err(|e| format!("Failed to query snippet: {}", e))?;
 
-        snippet
+        snippet_settings.ok_or_else(|| "Snippet settings not found".to_string())
     }
 
     pub fn update_snippet_settings(&self, keyboard_trigger_key: String, time_delay_ms: u64) -> Result<(), String> {
+        let conn = self.conn.lock().map_err(|e| e.to_string())?;
         conn.execute(
             "UPDATE snippet_settings SET keyboard_trigger = ?1, time_delay_ms = ?2 id = 1",
             params![&keyboard_trigger_key, &time_delay_ms],
         )
         .map_err(|e| format!("Failed to update snippet: {}", e))?;
+
+        Ok(())
     }
 
     pub fn get_all_snippets(&self) -> Result<Vec<Snippet>, String> {
         let conn = self.conn.lock().map_err(|e| e.to_string())?;
 
         let mut stmt = conn
-            .prepare("SELECT id, trigger, content, description, tags, created_at, updated_at, usage_count FROM snippets ORDER BY updated_at DESC")
+            .prepare("SELECT id, trigger, content, description, tags, created_at, updated_at, usage_count, is_html FROM snippets ORDER BY updated_at DESC")
             .map_err(|e| format!("Failed to prepare statement: {}", e))?;
 
         let snippets = stmt
@@ -138,7 +143,7 @@ impl Database {
         let conn = self.conn.lock().map_err(|e| e.to_string())?;
 
         let mut stmt = conn
-            .prepare("SELECT id, trigger, content, description, tags, created_at, updated_at, usage_count FROM snippets WHERE id = ?1")
+            .prepare("SELECT id, trigger, content, description, tags, created_at, updated_at, usage_count, is_html FROM snippets WHERE id = ?1")
             .map_err(|e| format!("Failed to prepare statement: {}", e))?;
 
         let snippet = stmt
@@ -183,6 +188,7 @@ impl Database {
         let tags_json = serde_json::to_string(&snippet.tags)
             .map_err(|e| format!("Failed to serialize tags: {}", e))?;
 
+        println!("1234");
         conn.execute(
             "INSERT INTO snippets (id, trigger, content, description, tags, created_at, updated_at, usage_count, is_html) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
             params![
@@ -199,6 +205,7 @@ impl Database {
         )
         .map_err(|e| format!("Failed to insert snippet: {}", e))?;
 
+        println!("5678");
         Ok(())
     }
 
@@ -267,7 +274,7 @@ impl Database {
 
         let mut stmt = conn
             .prepare(
-                "SELECT id, trigger, content, description, tags, created_at, updated_at, usage_count 
+                "SELECT id, trigger, content, description, tags, created_at, updated_at, usage_count, is_html
                  FROM snippets 
                  WHERE trigger LIKE ?1 
                     OR content LIKE ?1 

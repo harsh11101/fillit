@@ -7,7 +7,7 @@ mod snippet;
 mod snippet_settings;
 mod typing;
 
-use commands::*;
+use command::*;
 use config::Database;
 
 fn main() {
@@ -15,6 +15,7 @@ fn main() {
     let db = Database::new().expect("Failed to initialize database");
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
         .manage(db)
         .invoke_handler(tauri::generate_handler![
             get_all_snippets,
@@ -27,7 +28,7 @@ fn main() {
             import_snippets,
             increment_usage,
             update_snippet_settings,
-            get_snippet_settings
+            get_snippets_settings
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
