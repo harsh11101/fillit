@@ -68,14 +68,14 @@ pub fn increment_usage(id: String, db: State<Database>) -> Result<(), String> {
 
 #[tauri::command]
 pub fn update_snippet_settings(
-    keyboard_trigger_key: String,
     time_delay_ms: u64,
     db: State<Database>,
 ) -> Result<(), String> {
-    db.update_snippet_settings(keyboard_trigger_key, time_delay_ms)
+    db.update_snippet_settings(time_delay_ms)
 }
 
 #[tauri::command]
 pub fn get_snippets_settings(db: State<Database>) -> Result<SnippetSettings, String> {
+    println!("Fetching snippet settings from database");
     db.get_snippet_settings()
 }

@@ -1,0 +1,1 @@
+SELECT time_delay_ms, created_at, updated_at FROM snippet_settings WHERE id = 1

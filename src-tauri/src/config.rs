@@ -3,6 +3,7 @@ use crate::snippet_settings::SnippetSettings;
 use rusqlite::{params, OptionalExtension, Connection, Result as SqlResult};
 use std::path::PathBuf;
 use std::sync::Mutex;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 pub struct Database {
     conn: Mutex<Connection>,
@@ -61,8 +62,7 @@ impl Database {
         conn.execute(
             "CREATE TABLE IF NOT EXISTS snippet_settings (
             id INTEGER PRIMARY KEY CHECK (id = 1),
-            keyboard_trigger_key TEXT,
-            time_delay_ms INTEGER DEFAULT 200,
+            time_delay_ms INTEGER DEFAULT 0,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )",
@@ -70,25 +70,32 @@ impl Database {
         )
         .map_err(|e| format!("Failed to create table: {}", e))?;
 
+        // Ensure there's always one row in snippet_settings
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        conn.execute(
+            "INSERT OR IGNORE INTO snippet_settings (id, time_delay_ms, created_at, updated_at) VALUES (1, 200, ?1, ?2)",
+            [&timestamp, &timestamp],
+        )
+        .map_err(|e| format!("Failed to initialize snippet_settings: {}", e))?;
+
         Ok(())
     }
 
     pub fn get_snippet_settings(&self) -> Result<SnippetSettings, String> {
         let conn = self.conn.lock().map_err(|e| e.to_string())?;
-
         let mut stmt = conn
-            .prepare("SELECT keyboard_trigger_key, time_delay_ms FROM snippet_settings WHERE id = 1")
+            .prepare("SELECT time_delay_ms, created_at, updated_at FROM snippet_settings WHERE id = 1")
             .map_err(|e| format!("Failed to prepare statement: {}", e))?;
-
         let snippet_settings = stmt
             .query_row([],|row| {
-
                 Ok(SnippetSettings {
-                    id: row.get(0)?,
-                    keyboard_trigger_key: row.get(1)?,
-                    time_delay_ms: row.get(2)?,
-                    created_at: row.get(3)?,
-                    updated_at: row.get(4)?,
+                    id: "1".to_string(),
+                    time_delay_ms: row.get(0)?,
+                    created_at: row.get(1)?,
+                    updated_at: row.get(2)?,
                 })
             })
             .optional()
@@ -97,11 +104,15 @@ impl Database {
         snippet_settings.ok_or_else(|| "Snippet settings not found".to_string())
     }
 
-    pub fn update_snippet_settings(&self, keyboard_trigger_key: String, time_delay_ms: u64) -> Result<(), String> {
+    pub fn update_snippet_settings(&self, time_delay_ms: u64) -> Result<(), String> {
         let conn = self.conn.lock().map_err(|e| e.to_string())?;
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
         conn.execute(
-            "UPDATE snippet_settings SET keyboard_trigger = ?1, time_delay_ms = ?2 id = 1",
-            params![&keyboard_trigger_key, &time_delay_ms],
+            "UPDATE snippet_settings SET time_delay_ms = ?1, updated_at = ?2 WHERE id = 1",
+            params![&time_delay_ms, &timestamp],
         )
         .map_err(|e| format!("Failed to update snippet: {}", e))?;
 

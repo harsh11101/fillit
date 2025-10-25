@@ -23,6 +23,13 @@ export type ThemeProviderState = {
   setTheme: (theme: Theme) => void;
 };
 
+export type SnippetSettings = {
+  id: string;
+  time_delay_ms: number;
+  created_at: number;
+  updated_at: number;
+}
+
 export interface SnippetListProps {
   snippets: Snippet[];
   onSelectSnippet: (snippet: Snippet) => void;
@@ -49,6 +56,8 @@ export interface SidebarProps {
   selectedTag: string | null;
   onSelectTag: (tag: string | null) => void;
   onCreateNew: () => void;
+  currentView: 'snippets' | 'settings';
+  onViewChange: (view: 'snippets' | 'settings') => void;
 }
 
 export interface SnippetEditorProps {

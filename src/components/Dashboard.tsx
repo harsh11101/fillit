@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { invoke } from "@tauri-apps/api/core"
-import { Sidebar } from './Sidebar';
-import { Header } from './Header';
-import { SnippetList } from './SnippetList';
-import { SnippetEditor } from './SnippetEditor';
-import { EmptyState } from './EmptyState';
-import { StatsCards } from './StatsCard';
+import { Sidebar } from '@/components/Sidebar';
+import { Header } from '@/components/Header';
+import { SnippetList } from '@/components/SnippetList';
+import { SnippetEditor } from '@/components/SnippetEditor';
+import { EmptyState } from '@/components/EmptyState';
+import { StatsCards } from '@/components/StatsCard';
 import { Snippet } from '@/types';
 import { toast } from 'sonner';
+import { Settings } from '@/components/Settings';
 
 export function Dashboard() {
   const [snippets, setSnippets] = useState<Snippet[]>([]);
@@ -17,6 +18,7 @@ export function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [_loading, setLoading] = useState(true);
+  const [currentView, setCurrentView] = useState<'snippets' | 'settings'>('snippets');
 
   const loadSnippets = async () => {
     try {
@@ -105,11 +107,11 @@ export function Dashboard() {
   const handleDeleteSnippet = async (id: string) => {
     try {
       await invoke('delete_snippet', { id });
-      toast.success
+      toast.success('Snippet deleted successfully');
       loadSnippets();
       setSelectedSnippet(null);
     } catch (error) {
-      toast.error(error as string);
+      toast.error('Failed to delete snippet');
     }
   };
 
@@ -122,9 +124,9 @@ export function Dashboard() {
       a.href = url;
       a.download = `snippets-${Date.now()}.json`;
       a.click();
-      toast.success('Exported snippets successfully');
+      toast.success('Snippets exported successfully');
     } catch (error) {
-      toast.error(error as string);
+      toast.error('Failed to export snippets');
     }
   };
 
@@ -132,7 +134,7 @@ export function Dashboard() {
     try {
       const text = await file.text();
       const count = await invoke<number>('import_snippets', { json: text });
-      toast.success(`Imported ${count} snippets successfully`);
+      toast.success(`Imported ${count} snippet(s)`);
       loadSnippets();
     } catch (error) {
       toast.error(error as string);
@@ -150,6 +152,15 @@ export function Dashboard() {
         onCreateNew={() => {
           setIsCreating(true);
           setSelectedSnippet(null);
+          setCurrentView('snippets');
+        }}
+        currentView={currentView}
+        onViewChange={(view) => {
+          setCurrentView(view);
+          if (view === 'settings') {
+            setIsCreating(false);
+            setSelectedSnippet(null);
+          }
         }}
       />
       
@@ -162,45 +173,51 @@ export function Dashboard() {
         />
 
         <div className="flex-1 overflow-auto p-6">
-          {!isCreating && !selectedSnippet && (
+          {currentView === 'settings' ? (
+            <Settings />
+          ) : (
             <>
-              <StatsCards snippets={snippets} />
-              {filteredSnippets.length === 0 ? (
-                <EmptyState onCreateNew={() => setIsCreating(true)} />
-              ) : (
-                <SnippetList
-                  snippets={filteredSnippets}
-                  onSelectSnippet={(snippet) => {
-                    setSelectedSnippet(snippet);
+              {!isCreating && !selectedSnippet && (
+                <>
+                  <StatsCards snippets={snippets} />
+                  {filteredSnippets.length === 0 ? (
+                    <EmptyState onCreateNew={() => setIsCreating(true)} />
+                  ) : (
+                    <SnippetList
+                      snippets={filteredSnippets}
+                      onSelectSnippet={(snippet) => {
+                        setSelectedSnippet(snippet);
+                        setIsCreating(false);
+                      }}
+                      onDeleteSnippet={handleDeleteSnippet}
+                    />
+                  )}
+                </>
+              )}
+
+              {(isCreating || selectedSnippet) && (
+                <SnippetEditor
+                  snippet={selectedSnippet}
+                  onSave={
+                    isCreating
+                      ? handleCreateSnippet
+                      : (trigger, content, description, tags, isHtml) =>
+                          handleUpdateSnippet(
+                            selectedSnippet!.id,
+                            trigger,
+                            content,
+                            description,
+                            tags,
+                            isHtml
+                          )
+                  }
+                  onCancel={() => {
                     setIsCreating(false);
+                    setSelectedSnippet(null);
                   }}
-                  onDeleteSnippet={handleDeleteSnippet}
                 />
               )}
             </>
-          )}
-
-          {(isCreating || selectedSnippet) && (
-            <SnippetEditor
-              snippet={selectedSnippet}
-              onSave={
-                isCreating
-                  ? handleCreateSnippet
-                  : (trigger, content, description, tags, isHtml) =>
-                      handleUpdateSnippet(
-                        selectedSnippet!.id,
-                        trigger,
-                        content,
-                        description,
-                        tags,
-                        isHtml
-                      )
-              }
-              onCancel={() => {
-                setIsCreating(false);
-                setSelectedSnippet(null);
-              }}
-            />
           )}
         </div>
       </div>

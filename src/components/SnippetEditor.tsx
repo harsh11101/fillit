@@ -9,6 +9,7 @@ import { X, Plus, Eye, Code } from 'lucide-react';
 import { SnippetEditorProps } from '@/types';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
 
 
 export function SnippetEditor({ snippet, onSave, onCancel }: SnippetEditorProps) {
@@ -43,8 +44,37 @@ export function SnippetEditor({ snippet, onSave, onCancel }: SnippetEditorProps)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (trigger.trim() && content.trim()) {
-      onSave(trigger.trim(), content.trim(), description.trim(), tags, isHtml);
+    
+    // Validate trigger
+    const trimmedTrigger = trigger.trim();
+    
+    if (!trimmedTrigger) {
+      toast.error('Trigger cannot be empty');
+      return;
+    }
+    
+    if (trimmedTrigger.length > 100) {
+      toast.error('Trigger cannot exceed 100 characters');
+      return;
+    }
+    
+    if (trimmedTrigger.includes(' ')) {
+      toast.error('Trigger cannot contain spaces');
+      return;
+    }
+    
+    if (trimmedTrigger.includes('\n') || trimmedTrigger.includes('\r')) {
+      toast.error('Trigger cannot contain newlines');
+      return;
+    }
+    
+    if (trimmedTrigger.includes('\t')) {
+      toast.error('Trigger cannot contain tabs');
+      return;
+    }
+    
+    if (content.trim()) {
+      onSave(trimmedTrigger, content.trim(), description.trim(), tags, isHtml);
     }
   };
 

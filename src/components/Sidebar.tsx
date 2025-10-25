@@ -1,9 +1,9 @@
-import { Plus, Tag, Home, X } from 'lucide-react';
+import { Plus, Tag, Home, X, Settings as SettingsIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SidebarProps } from '@/types';
 
-export function Sidebar({ tags, selectedTag, onSelectTag, onCreateNew }: SidebarProps) {
+export function Sidebar({ tags, selectedTag, onSelectTag, onCreateNew, currentView, onViewChange }: SidebarProps) {
   return (
     <div className="w-64 border-r bg-card flex flex-col">
       <div className="p-6 border-b">
@@ -14,7 +14,7 @@ export function Sidebar({ tags, selectedTag, onSelectTag, onCreateNew }: Sidebar
       </div>
 
       <div className="p-4">
-        <Button onClick={onCreateNew} className="w-full" size="lg">
+        <Button onClick={onCreateNew} className="w-full" size="lg" disabled={currentView === 'settings'}>
           <Plus className="w-4 h-4 mr-2" />
           New Snippet
         </Button>
@@ -23,15 +23,27 @@ export function Sidebar({ tags, selectedTag, onSelectTag, onCreateNew }: Sidebar
       <ScrollArea className="flex-1 px-4">
         <div className="space-y-2">
           <Button
-            variant={selectedTag === null ? 'secondary' : 'ghost'}
+            variant={currentView === 'snippets' && selectedTag === null ? 'secondary' : 'ghost'}
             className="w-full justify-start"
-            onClick={() => onSelectTag(null)}
+            onClick={() => {
+              onViewChange('snippets');
+              onSelectTag(null);
+            }}
           >
             <Home className="w-4 h-4 mr-2" />
             All Snippets
           </Button>
 
-          {tags.length > 0 && (
+          <Button
+            variant={currentView === 'settings' ? 'secondary' : 'ghost'}
+            className="w-full justify-start"
+            onClick={() => onViewChange('settings')}
+          >
+            <SettingsIcon className="w-4 h-4 mr-2" />
+            Settings
+          </Button>
+
+          {currentView === 'snippets' && tags.length > 0 && (
             <>
               <div className="pt-4 pb-2">
                 <h3 className="text-sm font-semibold text-muted-foreground px-2">Tags</h3>
