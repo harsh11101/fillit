@@ -143,6 +143,11 @@ export function Dashboard() {
 
   const allTags = Array.from(new Set(snippets.flatMap((s) => s.tags)));
 
+  const handleBackToSnippets = () => {
+    setIsCreating(false);
+    setSelectedSnippet(null);
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar
@@ -162,6 +167,7 @@ export function Dashboard() {
             setSelectedSnippet(null);
           }
         }}
+        onBackToSnippets={handleBackToSnippets}
       />
       
       <div className="flex-1 flex flex-col overflow-hidden">

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SidebarProps } from '@/types';
 
-export function Sidebar({ tags, selectedTag, onSelectTag, onCreateNew, currentView, onViewChange }: SidebarProps) {
+export function Sidebar({tags, selectedTag, onSelectTag, onCreateNew, currentView, onViewChange, onBackToSnippets}: SidebarProps) {
   return (
     <div className="w-64 border-r bg-card flex flex-col">
       <div className="p-6 border-b">
@@ -28,6 +28,7 @@ export function Sidebar({ tags, selectedTag, onSelectTag, onCreateNew, currentVi
             onClick={() => {
               onViewChange('snippets');
               onSelectTag(null);
+              onBackToSnippets(); // Close any open editor
             }}
           >
             <Home className="w-4 h-4 mr-2" />
@@ -53,7 +54,10 @@ export function Sidebar({ tags, selectedTag, onSelectTag, onCreateNew, currentVi
                   key={tag}
                   variant={selectedTag === tag ? 'secondary' : 'ghost'}
                   className="w-full justify-start group"
-                  onClick={() => onSelectTag(selectedTag === tag ? null : tag)}
+                  onClick={() => {
+                    onSelectTag(selectedTag === tag ? null : tag);
+                    onBackToSnippets(); // Close any open editor when switching tags
+                  }}
                 >
                   <Tag className="w-4 h-4 mr-2" />
                   <span className="flex-1 text-left truncate">{tag}</span>

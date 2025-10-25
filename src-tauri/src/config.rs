@@ -27,7 +27,6 @@ impl Database {
         let config_dir = dirs::config_dir()
             .expect("Failed to get config directory")
             .join("lemmeDoIt");
-        println!("Database will be stored at: {:?}", config_dir);
 
         std::fs::create_dir_all(&config_dir).expect("Failed to create config directory");
         config_dir.join("snippets.db")
@@ -35,7 +34,6 @@ impl Database {
 
     fn init_tables(&self) -> Result<(), String> {
         let conn = self.conn.lock().map_err(|e| e.to_string())?;
-        println!("Making snipprt table");
         conn.execute(
             "CREATE TABLE IF NOT EXISTS snippets (
                 id TEXT PRIMARY KEY,
@@ -199,7 +197,6 @@ impl Database {
         let tags_json = serde_json::to_string(&snippet.tags)
             .map_err(|e| format!("Failed to serialize tags: {}", e))?;
 
-        println!("1234");
         conn.execute(
             "INSERT INTO snippets (id, trigger, content, description, tags, created_at, updated_at, usage_count, is_html) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
             params![
@@ -216,7 +213,6 @@ impl Database {
         )
         .map_err(|e| format!("Failed to insert snippet: {}", e))?;
 
-        println!("5678");
         Ok(())
     }
 

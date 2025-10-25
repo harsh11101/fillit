@@ -58,6 +58,7 @@ export interface SidebarProps {
   onCreateNew: () => void;
   currentView: 'snippets' | 'settings';
   onViewChange: (view: 'snippets' | 'settings') => void;
+  onBackToSnippets: () => void;
 }
 
 export interface SnippetEditorProps {

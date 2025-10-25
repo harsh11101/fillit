@@ -36,7 +36,7 @@ export function Settings() {
         toast.error('Time delay cannot be negative');
         return;
       }
-      await invoke('update_snippet_settings', { time_delay_ms: timeDelay });
+      await invoke('update_snippet_settings', { timeDelayMs: timeDelay });
       toast.success(`Time delay set to ${timeDelay}ms`);
     } catch (error) {
       console.error(error);
@@ -46,7 +46,7 @@ export function Settings() {
 
   const handleReset = async () => {
     try {
-      await invoke('update_snippet_settings', { time_delay_ms: 200 });
+      await invoke('update_snippet_settings', { timeDelayMs: 200 });
       setTimeDelay(200);
       toast.success('Settings reset to default (200ms)');
     } catch (error) {

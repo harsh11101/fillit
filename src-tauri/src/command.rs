@@ -22,7 +22,6 @@ pub fn create_snippet(
     tags: Vec<String>,
     db: State<Database>,
 ) -> Result<Snippet, String> {
-    println!("printing the snippet creation is_html value: {}", is_html);
     let snippet = Snippet::new(trigger, content, description, tags, is_html);
     db.create_snippet(&snippet)?;
     Ok(snippet)
@@ -76,6 +75,5 @@ pub fn update_snippet_settings(
 
 #[tauri::command]
 pub fn get_snippets_settings(db: State<Database>) -> Result<SnippetSettings, String> {
-    println!("Fetching snippet settings from database");
     db.get_snippet_settings()
 }
