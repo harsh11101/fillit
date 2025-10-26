@@ -10,7 +10,7 @@ pub struct SnippetSettings {
 }
 
 impl SnippetSettings {
-    pub fn new(id: String, time_delay_ms: u64, created_at: u64, updated_at: u64) -> Self {
+    pub fn _new(id: String, time_delay_ms: u64) -> Self {
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
@@ -24,7 +24,7 @@ impl SnippetSettings {
         }
     }
 
-    pub fn update(&mut self, id: String, time_delay_ms: u64) {
+    pub fn _update(&mut self, time_delay_ms: u64) {
         self.time_delay_ms = time_delay_ms;
         self.updated_at = SystemTime::now()
             .duration_since(UNIX_EPOCH)

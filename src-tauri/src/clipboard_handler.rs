@@ -1,28 +1,29 @@
-use clipboard_rs::{Clipboard, ClipboardContext, formats::Html};
+use clipboard_rs::{Clipboard, ClipboardContext};
 use std::error::Error;
 
-struct ClipboardHandler {
+pub struct ClipboardHandler {
     ctx: ClipboardContext,
 }
 
 impl ClipboardHandler {
-    fn new() -> Result<Self, Box<dyn Error>> {
+    pub fn new() -> Result<Self, Box<dyn Error + Send + Sync>> {
         Ok(Self {
             ctx: ClipboardContext::new()?,
         })
     }
 
-    fn set_text(&mut self, text: &str) -> Result<(), Box<dyn Error>> {
-        self.ctx.set_text(text)?;
+    pub fn set_text(&mut self, text: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.ctx.set_text(text.to_string())?;
         Ok(())
     }
 
-    fn set_html(&mut self, html: &str) -> Result<(), Box<dyn Error>> {
-        let html_content = Html {
-            html: html.to_string(),
-            base_url: None,
-        };
-        self.ctx.set(html_content)?;
+    pub fn set_html(&mut self, html: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.ctx.set_html(html.to_string())?;
+        Ok(())
+    }
+
+    pub fn clear(&mut self) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.ctx.clear()?;
         Ok(())
     }
 }
