@@ -68,14 +68,13 @@ impl Database {
         )
         .map_err(|e| format!("Failed to create table: {}", e))?;
 
-        // Ensure there's always one row in snippet_settings
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_secs();
         conn.execute(
-            "INSERT OR IGNORE INTO snippet_settings (id, time_delay_ms, created_at, updated_at) VALUES (1, 200, ?1, ?2)",
-            [&timestamp, &timestamp],
+            "INSERT OR IGNORE INTO snippet_settings (id, created_at, updated_at) VALUES (1, ?1, ?1)",
+            [&timestamp],
         )
         .map_err(|e| format!("Failed to initialize snippet_settings: {}", e))?;
 

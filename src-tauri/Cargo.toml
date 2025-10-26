@@ -25,6 +25,7 @@ tokio = { version = "1", features = ["full"] }
 enigo = "0.2"
 clipboard-rs = "0.3.0"
 tauri-plugin-autostart = "2.0.0"
+
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]

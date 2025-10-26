@@ -87,7 +87,6 @@ export function Settings() {
             </div>
           </div>
 
-          {/* Time Delay Settings */}
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="time-delay" className="text-base">Time Delay (milliseconds)</Label>
@@ -115,7 +114,6 @@ export function Settings() {
               </p>
             </div>
 
-            {/* Quick Presets */}
             <div className="space-y-2">
               <Label className="text-sm">Quick Presets</Label>
               <div className="flex flex-wrap gap-2">
@@ -132,7 +130,6 @@ export function Settings() {
               </div>
             </div>
 
-            {/* Visual indicator */}
             {timeDelay >= 0 && (
               <div className="p-3 rounded-lg bg-muted">
                 <p className="text-sm">
@@ -146,7 +143,6 @@ export function Settings() {
             )}
           </div>
 
-          {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
             <Button onClick={handleSave} className="flex-1" size="lg">
               Save Settings
@@ -158,7 +154,6 @@ export function Settings() {
         </CardContent>
       </Card>
 
-      {/* Additional Info Card */}
       <Card>
         <CardHeader>
           <CardTitle>Understanding Time Delay</CardTitle>
