@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # sql file tests
-*/src-tauri/test_sql/*
+src-tauri/test_sql/*
