@@ -12,7 +12,7 @@ impl ClipboardHandler {
         })
     }
 
-    pub fn set_text(&mut self, text: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
+    pub fn _set_text(&mut self, text: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.ctx.set_text(text.to_string())?;
         Ok(())
     }

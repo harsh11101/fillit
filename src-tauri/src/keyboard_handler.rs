@@ -218,73 +218,127 @@ impl KeyboardHandler {
         }
     }
 
-    fn replace_trigger_with_content(&self, trigger: &str, content: &str, snippet_id: &str, is_html: bool) {
-        thread::sleep(Duration::from_millis(100));
+    fn replace_trigger_with_content(&self, trigger: &str, content: &str, snippet_id: &str, is_html: bool) {       
+        thread::sleep(Duration::from_millis(150));
 
         {
-            let mut enigo = self.enigo.lock().unwrap();
+            let mut enigo = self.enigo.lock().unwrap();            
             for i in 0..trigger.len() {
-                enigo.key(Key::Backspace, enigo::Direction::Click).unwrap();
-                thread::sleep(Duration::from_millis(5));
-
-                if (i + 1) % 10 == 0 {
-                    thread::sleep(Duration::from_millis(10));
+                if let Err(e) = enigo.key(Key::Backspace, enigo::Direction::Click) {
+                    eprintln!("Failed to send backspace {}: {:?}", i, e);
+                    return;
                 }
+                thread::sleep(Duration::from_millis(10));
             }
         }
 
-        thread::sleep(Duration::from_millis(50));
+        thread::sleep(Duration::from_millis(100));
+
+        if !is_html {
+            let mut enigo = self.enigo.lock().unwrap();
+            
+            if let Err(e) = enigo.text(content) {
+                eprintln!("Failed to insert text: {:?}", e);
+                return;
+            }
+            
+            thread::sleep(Duration::from_millis(100));
+            
+            if let Err(e) = self.db.increment_usage(snippet_id) {
+                eprintln!("Failed to increment usage count: {}", e);
+            }
+            return;
+        }
 
         {
             let mut clipboard = self.clipboard.lock().unwrap();
-            let result = if is_html {
-                clipboard.set_html(content)
-            } else {
-                clipboard.set_text(content)
-            };
-
-            if let Err(e) = result {
-                eprintln!("Failed to set clipboard: {}", e);
+            if let Err(e) = clipboard.set_html(content) {
+                eprintln!("Failed to set clipboard HTML: {}", e);
                 return;
             }
         }
 
-        thread::sleep(Duration::from_millis(10));
+        thread::sleep(Duration::from_millis(100));
 
         {
             let mut enigo = self.enigo.lock().unwrap();
-
             #[cfg(target_os = "macos")]
             {
-                enigo.key(Key::Meta, enigo::Direction::Press).unwrap();
-                thread::sleep(Duration::from_millis(10));
-                enigo.key(Key::V, enigo::Direction::Click).unwrap();
-                thread::sleep(Duration::from_millis(10));
-                enigo.key(Key::Meta, enigo::Direction::Release).unwrap();
+                if let Err(e) = enigo.key(Key::Meta, enigo::Direction::Press) {
+                    eprintln!("Failed to press Meta: {:?}", e);
+                    return;
+                }
+                thread::sleep(Duration::from_millis(50));
+                
+                if let Err(e) = enigo.key(Key::V, enigo::Direction::Click) {
+                    eprintln!("Failed to press V: {:?}", e);
+                    let _ = enigo.key(Key::Meta, enigo::Direction::Release);
+                    return;
+                }
+                thread::sleep(Duration::from_millis(50));
+                
+                if let Err(e) = enigo.key(Key::Meta, enigo::Direction::Release) {
+                    eprintln!("Failed to release Meta: {:?}", e);
+                }
             }
 
-            #[cfg(not(target_os = "windows"))]
+            #[cfg(target_os = "windows")]
             {
-                enigo.key(Key::Control, enigo::Direction::Press).unwrap();
-                thread::sleep(Duration::from_millis(10));
-                enigo.key(Key::V, enigo::Direction::Click).unwrap();
-                thread::sleep(Duration::from_millis(10));
-                enigo.key(Key::Control, enigo::Direction::Release).unwrap();
+                if let Err(e) = enigo.key(Key::Control, enigo::Direction::Press) {
+                    eprintln!("Failed to press Control: {:?}", e);
+                    return;
+                }
+                thread::sleep(Duration::from_millis(50));
+                
+                if let Err(e) = enigo.key(Key::V, enigo::Direction::Click) {
+                    eprintln!("Failed to press V: {:?}", e);
+                    let _ = enigo.key(Key::Control, enigo::Direction::Release);
+                    return;
+                }
+                thread::sleep(Duration::from_millis(50));
+                
+                if let Err(e) = enigo.key(Key::Control, enigo::Direction::Release) {
+                    eprintln!("Failed to release Control: {:?}", e);
+                }
             }
+
+            #[cfg(target_os = "linux")]
+            {
+                if let Err(e) = enigo.key(Key::Control, enigo::Direction::Press) {
+                    eprintln!("Failed to press Control: {:?}", e);
+                    return;
+                }
+                thread::sleep(Duration::from_millis(50));
+                
+                if let Err(e) = enigo.key(Key::V, enigo::Direction::Click) {
+                    eprintln!("Failed to press V: {:?}", e);
+                    let _ = enigo.key(Key::Control, enigo::Direction::Release);
+                    return;
+                }
+                thread::sleep(Duration::from_millis(50));
+                
+                if let Err(e) = enigo.key(Key::Control, enigo::Direction::Release) {
+                    eprintln!("Failed to release Control: {:?}", e);
+                }
+            }
+            
         }
 
-        thread::sleep(Duration::from_millis(50));
+        thread::sleep(Duration::from_millis(100));
 
-        let mut clipboard = self.clipboard.lock().unwrap();
-        clipboard.clear().unwrap_or_else(|e| {
-            eprintln!("Failed to clear clipboard: {}", e);
-        });
+        {
+            let mut clipboard = self.clipboard.lock().unwrap();
+            if let Err(e) = clipboard.clear() {
+                eprintln!("Failed to clear clipboard: {}", e);
+            }
+        }
 
         thread::sleep(Duration::from_millis(50));
 
         if let Err(e) = self.db.increment_usage(snippet_id) {
             eprintln!("Failed to increment usage count: {}", e);
         }
+        
     }
 
     #[allow(dead_code)]

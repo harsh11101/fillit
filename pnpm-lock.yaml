@@ -53,7 +53,7 @@ dependencies:
 
 devDependencies:
   '@tauri-apps/cli':
-    specifier: '>=2.0.0'
+    specifier: ^2.0.0
     version: 2.0.0
   '@types/node':
     specifier: ^22.10.5
